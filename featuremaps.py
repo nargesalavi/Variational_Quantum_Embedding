@@ -30,8 +30,8 @@ def qaoa(weights, x, wires, n_layers=1):
 
        |0> - R_x(x1) - |^| -------- |_| - R_y(w7)  -
        |0> - R_x(x2) - |_|-|^| ---------- R_y(w8)  -
-       |0> - R_x(w1) ------|_|-|^| ------ R_y(w9)  -
-       |0> - R_x(w2) ----------|_| -|^| - R_y(w10) -
+       |0> - ___H___ ------|_|-|^| ------ R_y(w9)  -
+       |0> - ___H___ ----------|_| -|^| - R_y(w10) -
 
     After the last layer, another block of R_x(x_i) rotations is applied.
 
@@ -177,3 +177,81 @@ def pars_qaoa(n_wires, n_layers=1):
     elif n_wires == 4:
         return 0.001 * np.ones(n_wires * n_layers * 2)
     return 0.001*np.ones(n_layers * n_wires * 2)
+
+
+
+
+def shallow_circuit(weights, x, wires, n_layers=1,circuit_ID=1):
+    """
+    1-d Ising-coupling QAOA feature map, according to arXiv1812.11075.
+
+    Example one layer, 4 wires, 2 inputs:
+
+       |0> - R_x(x1) - |^| -------- |_| - R_y(w5)  -
+       |0> - R_x(x2) - |_|-|^| ---------- R_y(w6)  -
+       |0> - ___H___ ------|_|-|^| ------ R_y(w7)  -
+       |0> - ___H___ ----------|_| -|^| - R_y(w8) -
+
+    After the last layer, another block of R_x(x_i) rotations is applied.
+
+    :param weights: trainable weights of shape 2*n_layers*n_wires
+    :param 1d x: input, len(x) is <= len(wires)
+    :param wires: list of wires on which the feature map acts
+    :param n_layers: number of repetitions of the first layer
+    :param circuit_ID: the ID of the circuit based on 
+    """
+    n_wires = len(wires)
+
+    if n_wires == 1:
+        n_weights_needed = n_layers
+    elif n_wires == 2:
+        n_weights_needed = 3 * n_layers
+    else:
+        n_weights_needed = 2 * n_wires * n_layers
+
+    if len(x) > n_wires:
+        raise ValueError("Feat map can encode at most {} features (which is the "
+                         "number of wires), got {}.".format(n_wires, len(x)))
+
+    if len(weights) != n_weights_needed:
+        raise ValueError("Feat map needs {} weights, got {}."
+                         .format(n_weights_needed, len(weights)))
+
+    for l in range(n_layers):
+
+        # inputs
+        for i in range(n_wires):
+            # Either feed in feature
+            if i < len(x):
+                qml.RX(x[i], wires=wires[i])
+            # or a Hadamard
+            else:
+                qml.Hadamard(wires=wires[i])
+
+        # 1-d nearest neighbour coupling
+        if n_wires == 1:
+            qml.RY(weights[l], wires=wires[0])
+        elif n_wires == 2:
+            _entanglerZ(weights[l * 3 + 2], wires[0], wires[1])
+            # local fields
+            for i in range(n_wires):
+                qml.RY(weights[l * 3 + i], wires=wires[i])
+        else:
+            for i in range(n_wires):
+                if i < n_wires-1:
+                    _entanglerZ(weights[l * 2 * n_wires + i], wires[i], wires[i + 1])
+                else:
+                    # enforce periodic boundary condition
+                    _entanglerZ(weights[l * 2 * n_wires + i], wires[i], wires[0])
+            # local fields
+            for i in range(n_wires):
+                qml.RY(weights[l * 2 * n_wires + n_wires + i], wires=wires[i])
+
+    # repeat feature encoding once more at the end
+    for i in range(n_wires):
+        # Either feed in feature
+        if i < len(x):
+            qml.RX(x[i], wires=wires[i])
+        # or a Hadamard
+        else:
+            qml.Hadamard(wires=wires[i])
