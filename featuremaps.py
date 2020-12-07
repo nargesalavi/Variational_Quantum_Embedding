@@ -22,7 +22,7 @@ def _entanglerZ(w_, w1, w2):
     qml.CNOT(wires=[w2, w1])
 
 
-def qaoa(weights, x, wires, n_layers=1):
+def qaoa(weights, x, wires, n_layers=1, type_number = 1):
     """
     1-d Ising-coupling QAOA feature map, according to arXiv1812.11075.
 
@@ -91,7 +91,10 @@ def qaoa(weights, x, wires, n_layers=1):
     for i in range(n_wires):
         # Either feed in feature
         if i < len(x):
-            qml.RX(x[i], wires=wires[i])
+            if type_number == 1:
+                qml.RX(x[i], wires=wires[i])
+            elif type_number == 2:
+                qml.RY(x[i], wires=wires[i])
         # or a Hadamard
         else:
             qml.Hadamard(wires=wires[i])
