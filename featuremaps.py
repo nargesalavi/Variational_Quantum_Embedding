@@ -85,7 +85,10 @@ def qaoa(weights, x, wires, n_layers=1, type_number = 1):
                     _entanglerZ(weights[l * 2 * n_wires + i], wires[i], wires[0])
             # local fields
             for i in range(n_wires):
-                qml.RY(weights[l * 2 * n_wires + n_wires + i], wires=wires[i])
+                if type_number == 1:
+                    qml.RY(weights[l * 2 * n_wires + n_wires + i], wires=wires[i])
+                elif type_number == 2:
+                    qml.RX(weights[l * 2 * n_wires + n_wires + i], wires=wires[i])
 
     # repeat feature encoding once more at the end
     for i in range(n_wires):
