@@ -63,19 +63,29 @@ def qaoa(weights, x, wires, n_layers=1, type_number = 1):
         for i in range(n_wires):
             # Either feed in feature
             if i < len(x):
-                qml.RX(x[i], wires=wires[i])
+            	if type_number == 1:
+            		qml.RX(x[i], wires=wires[i])
+            	elif type_number == 2:
+                	qml.RY(x[i], wires=wires[i])
             # or a Hadamard
             else:
                 qml.Hadamard(wires=wires[i])
 
         # 1-d nearest neighbour coupling
         if n_wires == 1:
-            qml.RY(weights[l], wires=wires[0])
+        	if type_number == 1:
+        		qml.RY(weights[l], wires=wires[0])
+        	elif type_number == 2:
+        		qml.RX(weights[l], wires=wires[0])
+            
         elif n_wires == 2:
             _entanglerZ(weights[l * 3 + 2], wires[0], wires[1])
             # local fields
             for i in range(n_wires):
-                qml.RY(weights[l * 3 + i], wires=wires[i])
+	            if type_number == 1:
+	            	qml.RY(weights[l * 3 + i], wires=wires[i])
+	            elif type_number == 2:
+	            	qml.RX(weights[l * 3 + i], wires=wires[i])
         else:
             for i in range(n_wires):
                 if i < n_wires-1:
@@ -86,9 +96,9 @@ def qaoa(weights, x, wires, n_layers=1, type_number = 1):
             # local fields
             for i in range(n_wires):
                 if type_number == 1:
-                    qml.RY(weights[l * 2 * n_wires + n_wires + i], wires=wires[i])
+                	qml.RY(weights[l * 2 * n_wires + n_wires + i], wires=wires[i])
                 elif type_number == 2:
-                    qml.RX(weights[l * 2 * n_wires + n_wires + i], wires=wires[i])
+                	qml.RX(weights[l * 2 * n_wires + n_wires + i], wires=wires[i])
 
     # repeat feature encoding once more at the end
     for i in range(n_wires):
