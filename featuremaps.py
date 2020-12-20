@@ -176,6 +176,9 @@ def shallow_circuit(weights, x, wires, n_layers=1,circuit_ID=1):
             if i < len(x):
                 if circuit_ID == 18 or circuit_ID == 19:
                     qml.RX(x[i], wires=wires[i])
+
+                elif circuit_ID == 11 or circuit_ID == 12:
+                    qml.RY(x[i], wires=wires[i])
                 else:
                     raise ValueError("Wrong circuit_ID: It should be between 1-19, got {}.".format(circuit_ID))
             else:
