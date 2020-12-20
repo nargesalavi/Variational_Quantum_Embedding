@@ -192,7 +192,7 @@ def shallow_circuit(weights, x, wires, n_layers=1,circuit_ID=1):
 	            if circuit_ID == 19:
 	            	qml.RZ(weights[l * 3 + i], wires=wires[i])
 
-            qml.CRZ(weights[l * 3 + 2], [wires[1], wires[0]])
+            qml.CRZ(weights[l * 3 + 2], wires=[wires[1], wires[0]])
         else:
         	# local fields
             for i in range(n_wires):
@@ -201,9 +201,9 @@ def shallow_circuit(weights, x, wires, n_layers=1,circuit_ID=1):
 
             for i in range(n_wires):
             	if i == 0:
-            		qml.CRZ(weights[l * 2 * n_wires + n_wires + i], wires[n_wires-1], wires[0])
+            		qml.CRZ(weights[l * 2 * n_wires + n_wires + i], wires=[wires[n_wires-1], wires[0]])
             	elif i < n_wires-1:
-            		qml.CRZ(weights[l * 2 * n_wires + n_wires + i], wires[i], wires[i + 1])
+            		qml.CRZ(weights[l * 2 * n_wires + n_wires + i], wires=[wires[i], wires[i + 1]])
 
     # repeat feature encoding once more at the end
     for i in range(n_wires):
