@@ -219,11 +219,11 @@ def shallow_circuit(weights, x, wires, n_layers=1,circuit_ID=1):
                         qml.CRX(weights[l * 2 * n_wires + n_wires + i], wires=[wires[i], wires[i + 1]])
 
     # repeat feature encoding once more at the end
-    for i in range(n_wires):
+    #for i in range(n_wires):
         # Either feed in feature
-        if i < len(x):
-            if circuit_ID == 18 or circuit_ID == 19:
-                qml.RX(x[i], wires=wires[i])
+    #    if i < len(x):
+    #        if circuit_ID == 18 or circuit_ID == 19:
+    #            qml.RX(x[i], wires=wires[i])
         # or a Hadamard
-        else:
-            qml.Hadamard(wires=wires[i])
+    #    else:
+    #        qml.Hadamard(wires=wires[i])
