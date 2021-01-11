@@ -297,21 +297,17 @@ def HVA_XXZ(weights, x, wires, n_layers=1):
 
 def HVA_TFIM(weights, x, wires, n_layers=1):
     """
-    1-d Ising-coupling QAOA feature map, according to arXiv1812.11075.
+    1-d Ising-coupling HVA_TFIM feature map, according to 2008.02941v2.11075.
 
     :param weights: trainable weights of shape 2*n_layers*n_wires
     :param 1d x: input, len(x) is <= len(wires)
     :param wires: list of wires on which the feature map acts
     :param n_layers: number of repetitions of the first layer
     """
+    wires = range(0, 4)
     n_wires = len(wires)
 
-    if n_wires == 1:
-        n_weights_needed = n_layers
-    elif n_wires == 2:
-        n_weights_needed = 3 * n_layers
-    else:
-        n_weights_needed = 7 * n_layers
+    n_weights_needed = 4 * n_layers
 
     if len(x) > n_wires:
         raise ValueError("Feat map can encode at most {} features (which is the "
@@ -327,29 +323,24 @@ def HVA_TFIM(weights, x, wires, n_layers=1):
         for i in range(n_wires):
             qml.Hadamard(wires=wires[i])
 
-        # 1-d nearest neighbour coupling
-        if n_wires == 1:
-            qml.RY(weights[l], wires=wires[0])
-        elif n_wires == 2:
-            _entanglerZ(weights[l * 3 + 2], wires[0], wires[1])
-            # local fields
-            for i in range(n_wires):
-                qml.RY(weights[l * 3 + i], wires=wires[i])
-        else:
             
-            _entanglerZ(x[i], wires[0], wires[1])
-            _entanglerZ(weights[l * 7 ], wires[2], wires[3])
-            _entanglerZ(weights[l * 7 + 1], wires[0], wires[3])
-            _entanglerZ(weights[l * 7 + 2], wires[1], wires[2])
-            for i in range(n_wires_):
-
-                qml.RX(weights[l * 7 + 2 + i], wires=wires[i])
+        _entanglerZ(x[0], wires[0], wires[1])
+        _entanglerZ(x[1], wires[2], wires[3])
+        _entanglerZ(weights[l * 4 ], wires[0], wires[3])
+        _entanglerZ(weights[l * 4 + 1], wires[1], wires[2])
 
     # repeat feature encoding once more at the end
-    for i in range(n_wires):
         # Either feed in feature
-        if i < len(x):
-            qml.RX(x[i], wires=wires[i])
-        # or a Hadamard
-        else:
-            qml.Hadamard(wires=wires[i])
+        qml.RX(x[0], wires=wires[0])
+        qml.RX(weights[l * 4 + 2], wires=wires[1])
+        qml.RX(x[1], wires=wires[2])
+        qml.RX(weights[l * 4 + 3], wires=wires[3])
+
+def pars_HVA(n_layers=1):
+    """
+    Initial weight generator for 1-d qaoa feature map
+    :param n_wires: number of wires
+    :param n_layers: number of layers
+    :return: array of weights
+    """
+    return 0.001*np.ones(n_layers * 4)
