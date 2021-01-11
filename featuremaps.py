@@ -295,7 +295,7 @@ def HVA_XXZ(weights, x, wires, n_layers=1):
         else:
             qml.Hadamard(wires=wires[i])
 
-def HVA_TFIM(weights, x, wires, n_layers=1):
+def HVA_TFIM(weights, x, wires, n_layers=1, types = 1):
     """
     1-d Ising-coupling HVA_TFIM feature map, according to 2008.02941v2.11075.
 
@@ -306,8 +306,10 @@ def HVA_TFIM(weights, x, wires, n_layers=1):
     """
     wires = range(0, 4)
     n_wires = len(wires)
-
-    n_weights_needed = 4 * n_layers
+    if types == 1:
+        n_weights_needed = 4 * n_layers
+    else:
+        n_weights_needed = 6 * n_layers
 
     if len(x) > n_wires:
         raise ValueError("Feat map can encode at most {} features (which is the "
@@ -323,24 +325,36 @@ def HVA_TFIM(weights, x, wires, n_layers=1):
         for i in range(n_wires):
             qml.Hadamard(wires=wires[i])
 
-            
-        _entanglerZ(x[0], wires[0], wires[1])
-        _entanglerZ(x[1], wires[2], wires[3])
-        _entanglerZ(weights[l * 4 ], wires[0], wires[3])
-        _entanglerZ(weights[l * 4 + 1], wires[1], wires[2])
+        if types == 1:
+            _entanglerZ(x[0], wires[0], wires[1])
+            _entanglerZ(x[1], wires[2], wires[3])
+            _entanglerZ(weights[l * 4 ], wires[0], wires[3])
+            _entanglerZ(weights[l * 4 + 1], wires[1], wires[2])
+        else:
+            _entanglerZ(weights[l * 6 ], wires[0], wires[1])
+            _entanglerZ(weights[l * 6 + 1], wires[2], wires[3])
+            _entanglerZ(weights[l * 6 + 2], wires[0], wires[3])
+            _entanglerZ(weights[l * 6 + 3], wires[1], wires[2])
 
     # repeat feature encoding once more at the end
         # Either feed in feature
         qml.RX(x[0], wires=wires[0])
-        qml.RX(weights[l * 4 + 2], wires=wires[1])
         qml.RX(x[1], wires=wires[2])
-        qml.RX(weights[l * 4 + 3], wires=wires[3])
+        if types == 1:
+            qml.RX(weights[l * 4 + 2], wires=wires[1])
+            qml.RX(weights[l * 4 + 3], wires=wires[3])
+        else:
+            qml.RX(weights[l * 6 + 4], wires=wires[1])
+            qml.RX(weights[l * 6 + 5], wires=wires[3])
 
-def pars_HVA(n_layers=1):
+def pars_HVA(n_layers=1,types=1):
     """
     Initial weight generator for 1-d qaoa feature map
     :param n_wires: number of wires
     :param n_layers: number of layers
     :return: array of weights
     """
-    return 0.001*np.ones(n_layers * 4)
+    if types == 1:
+        return 0.001*np.ones(n_layers * 4)
+    else:
+        return 0.001*np.ones(n_layers * 6)
