@@ -308,6 +308,8 @@ def HVA_TFIM(weights, x, wires, n_layers=1, types = 1):
     n_wires = len(wires)
     if types == 1:
         n_weights_needed = 4 * n_layers
+    elif types == 2:
+        n_weights_needed = 2 * n_layers
     else:
         n_weights_needed = 6 * n_layers
 
@@ -330,6 +332,11 @@ def HVA_TFIM(weights, x, wires, n_layers=1, types = 1):
             _entanglerZ(x[1], wires[2], wires[3])
             _entanglerZ(weights[l * 4 ], wires[0], wires[3])
             _entanglerZ(weights[l * 4 + 1], wires[1], wires[2])
+        elif types == 2:
+            _entanglerZ(weights[l * 2], wires[0], wires[1])
+            _entanglerZ(weights[l * 2], wires[2], wires[3])
+            _entanglerZ(weights[l * 2], wires[0], wires[3])
+            _entanglerZ(weights[l * 2], wires[1], wires[2])
         else:
             _entanglerZ(weights[l * 6 ], wires[0], wires[1])
             _entanglerZ(weights[l * 6 + 1], wires[2], wires[3])
@@ -343,6 +350,10 @@ def HVA_TFIM(weights, x, wires, n_layers=1, types = 1):
         if types == 1:
             qml.RX(weights[l * 4 + 2], wires=wires[1])
             qml.RX(weights[l * 4 + 3], wires=wires[3])
+        elif types == 2:
+            qml.RX(weights[l * 2 + 1], wires=wires[1])
+            qml.RX(weights[l * 2 + 1], wires=wires[3])
+
         else:
             qml.RX(weights[l * 6 + 4], wires=wires[1])
             qml.RX(weights[l * 6 + 5], wires=wires[3])
@@ -356,5 +367,7 @@ def pars_HVA(n_layers=1,types=1):
     """
     if types == 1:
         return 0.001*np.ones(n_layers * 4)
+    elif types == 2:
+        return 0.001*np.ones(n_layers * 2)
     else:
         return 0.001*np.ones(n_layers * 6)
