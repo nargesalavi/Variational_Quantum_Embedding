@@ -22,6 +22,7 @@ def _entanglerZ(w_, w1, w2):
     qml.CNOT(wires=[w2, w1])
 
 
+
 def qaoa(weights, x, wires, n_layers=1, circuit_ID = 1):
     """
     1-d Ising-coupling QAOA feature map, according to arXiv1812.11075.
@@ -295,7 +296,7 @@ def HVA_XXZ(weights, x, wires, n_layers=1):
         else:
             qml.Hadamard(wires=wires[i])
 
-def HVA_TFIM(weights, x, wires, n_layers=1, types = 1):
+def HVA_TFIM_2D_data(weights, x, wires, n_layers=1, types = 1):
     """
     1-d Ising-coupling HVA_TFIM feature map, according to 2008.02941v2.11075.
 
@@ -358,6 +359,128 @@ def HVA_TFIM(weights, x, wires, n_layers=1, types = 1):
             qml.RX(weights[l * 6 + 4], wires=wires[1])
             qml.RX(weights[l * 6 + 5], wires=wires[3])
 
+def HVA_TFIM_1D_data(weights, x, wires, n_layers=1, types = 1):
+    """
+    1-d Ising-coupling HVA_TFIM feature map, according to 2008.02941v2.11075.
+
+    :param weights: trainable weights of shape 2*n_layers*n_wires
+    :param 1d x: input, len(x) is <= len(wires)
+    :param wires: list of wires on which the feature map acts
+    :param n_layers: number of repetitions of the first layer
+    """
+    wires = range(0, 4)
+    n_wires = len(wires)
+    if types == 1:
+        n_weights_needed = 6 * n_layers # Data encoded via first and last layer
+    elif types == 2:
+        n_weights_needed = 2 * n_layers #all zz have same params, all rx have same params
+    else:
+        n_weights_needed = 7 * n_layers #encode layer just in last layer
+
+    if len(x) > n_wires:
+        raise ValueError("Feat map can encode at most {} features (which is the "
+                         "number of wires), got {}.".format(n_wires, len(x)))
+
+    if len(weights) != n_weights_needed:
+        raise ValueError("Feat map needs {} weights, got {}."
+                         .format(n_weights_needed, len(weights)))
+
+    for l in range(n_layers):
+
+        # inputs
+        for i in range(n_wires):
+            qml.Hadamard(wires=wires[i])
+
+        if types == 1:
+            _entanglerZ(x[0], wires[0], wires[1])
+            _entanglerZ(weights[l * 6 ], wires[2], wires[3])
+            _entanglerZ(weights[l * 6 + 1], wires[0], wires[3])
+            _entanglerZ(weights[l * 6 + 2], wires[1], wires[2])
+        elif types == 2:
+            _entanglerZ(weights[l * 2], wires[0], wires[1])
+            _entanglerZ(weights[l * 2], wires[2], wires[3])
+            _entanglerZ(weights[l * 2], wires[0], wires[3])
+            _entanglerZ(weights[l * 2], wires[1], wires[2])
+        else:
+            _entanglerZ(weights[l * 7 ], wires[0], wires[1])
+            _entanglerZ(weights[l * 7 + 1], wires[2], wires[3])
+            _entanglerZ(weights[l * 7 + 2], wires[0], wires[3])
+            _entanglerZ(weights[l * 7 + 3], wires[1], wires[2])
+
+    # repeat feature encoding once more at the end
+        # Either feed in feature
+        qml.RX(x[0], wires=wires[0])
+        if types == 1:
+
+            qml.RX(weights[l * 6 + 3], wires=wires[1])
+            qml.RX(weights[l * 6 + 4], wires=wires[2])
+            qml.RX(weights[l * 6 + 5], wires=wires[3])
+        elif types == 2:
+            qml.RX(weights[l * 2 + 1], wires=wires[1])
+            qml.RX(weights[l * 2 + 1], wires=wires[2])
+            qml.RX(weights[l * 2 + 1], wires=wires[3])
+
+        else:
+            qml.RX(weights[l * 7 + 4], wires=wires[1])
+            qml.RX(weights[l * 7 + 5], wires=wires[1])
+            qml.RX(weights[l * 7 + 6], wires=wires[3])
+
+def VQCs(weights, x, wires, n_layers=1, types = 1):
+    wires = range(0, 4)
+    n_wires = len(wires)
+    if types == 1:
+        n_weights_needed = 4 * n_layers
+    elif types == 2:
+        n_weights_needed = 2 * n_layers
+    else:
+        n_weights_needed = 6 * n_layers
+
+    if len(x) > n_wires:
+        raise ValueError("Feat map can encode at most {} features (which is the "
+                         "number of wires), got {}.".format(n_wires, len(x)))
+
+    if len(weights) != n_weights_needed:
+        raise ValueError("Feat map needs {} weights, got {}."
+                         .format(n_weights_needed, len(weights)))
+
+    for l in range(n_layers):
+
+        # inputs
+        for i in range(n_wires):
+            qml.Hadamard(wires=wires[i])
+
+        if types == 1:
+            _entanglerZ(x[0], wires[0], wires[1])
+            _entanglerZ(x[1], wires[2], wires[3])
+            _entanglerZ(weights[l * 4 ], wires[0], wires[3])
+            _entanglerZ(weights[l * 4 + 1], wires[1], wires[2])
+        elif types == 2:
+            _entanglerZ(weights[l * 2], wires[0], wires[1])
+            _entanglerZ(weights[l * 2], wires[2], wires[3])
+            _entanglerZ(weights[l * 2], wires[0], wires[3])
+            _entanglerZ(weights[l * 2], wires[1], wires[2])
+        else:
+            _entanglerZ(weights[l * 6 ], wires[0], wires[1])
+            _entanglerZ(weights[l * 6 + 1], wires[2], wires[3])
+            _entanglerZ(weights[l * 6 + 2], wires[0], wires[3])
+            _entanglerZ(weights[l * 6 + 3], wires[1], wires[2])
+
+    # repeat feature encoding once more at the end
+        # Either feed in feature
+        qml.RX(x[0], wires=wires[0])
+        qml.RX(x[1], wires=wires[2])
+        if types == 1:
+            qml.RX(weights[l * 4 + 2], wires=wires[1])
+            qml.RX(weights[l * 4 + 3], wires=wires[3])
+        elif types == 2:
+            qml.RX(weights[l * 2 + 1], wires=wires[1])
+            qml.RX(weights[l * 2 + 1], wires=wires[3])
+
+        else:
+            qml.RX(weights[l * 6 + 4], wires=wires[1])
+            qml.RX(weights[l * 6 + 5], wires=wires[3])
+
+
 def pars_HVA(n_layers=1,types=1):
     """
     Initial weight generator for 1-d qaoa feature map
@@ -371,3 +494,17 @@ def pars_HVA(n_layers=1,types=1):
         return 0.001*np.ones(n_layers * 2)
     else:
         return 0.001*np.ones(n_layers * 6)
+
+def Pars_HVA_TFIM_1D_data(n_layers=1,types=1):
+    """
+    Initial weight generator for 1-d qaoa feature map
+    :param n_wires: number of wires
+    :param n_layers: number of layers
+    :return: array of weights
+    """
+    if types == 1:
+        return 0.001*np.ones(n_layers * 6)
+    elif types == 2:
+        return 0.001*np.ones(n_layers * 2)
+    else:
+        return 0.001*np.ones(n_layers * 7)
