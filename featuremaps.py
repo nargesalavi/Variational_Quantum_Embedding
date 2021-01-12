@@ -425,15 +425,17 @@ def HVA_TFIM_1D_data(weights, x, wires, n_layers=1, types = 1):
             qml.RX(weights[l * 7 + 5], wires=wires[1])
             qml.RX(weights[l * 7 + 6], wires=wires[3])
 
-def VQCs(weights, x, wires, n_layers=1, types = 1):
-    wires = range(0, 4)
+def VQC(weights, x, wires, n_layers=1, types = 1):
+    """ Circuits ID = 5, 6 in arXiv:1905.10876 paper
+    :param weights: trainable weights of shape 2*n_layers*n_wires
+    :param 1d x: input, len(x) is <= len(wires)
+    :param wires: list of wires on which the feature map acts
+    :param n_layers: number of repetitions of the first layer
+    """
+    data_size = len(x)
     n_wires = len(wires)
-    if types == 1:
-        n_weights_needed = 4 * n_layers
-    elif types == 2:
-        n_weights_needed = 2 * n_layers
-    else:
-        n_weights_needed = 6 * n_layers
+    weights_each_layer  = (n_wires*(n_wires+3) - 2*data_size)
+    n_weights_needed = weights_each_layer * n_layers
 
     if len(x) > n_wires:
         raise ValueError("Feat map can encode at most {} features (which is the "
@@ -446,39 +448,29 @@ def VQCs(weights, x, wires, n_layers=1, types = 1):
     for l in range(n_layers):
 
         # inputs
+        for i in range(data_size):
+            qml.RX(x[i], wires=wires[i])
+
+        for i in range(n_wires-data_size):
+            qml.RX(weights[weights_each_layer*l+i], wires=wires[i+data_size])
+
         for i in range(n_wires):
-            qml.Hadamard(wires=wires[i])
+            qml.RZ(weights[weights_each_layer*l+n_wires-data_size+i], wires=wires[i])
 
-        if types == 1:
-            _entanglerZ(x[0], wires[0], wires[1])
-            _entanglerZ(x[1], wires[2], wires[3])
-            _entanglerZ(weights[l * 4 ], wires[0], wires[3])
-            _entanglerZ(weights[l * 4 + 1], wires[1], wires[2])
-        elif types == 2:
-            _entanglerZ(weights[l * 2], wires[0], wires[1])
-            _entanglerZ(weights[l * 2], wires[2], wires[3])
-            _entanglerZ(weights[l * 2], wires[0], wires[3])
-            _entanglerZ(weights[l * 2], wires[1], wires[2])
-        else:
-            _entanglerZ(weights[l * 6 ], wires[0], wires[1])
-            _entanglerZ(weights[l * 6 + 1], wires[2], wires[3])
-            _entanglerZ(weights[l * 6 + 2], wires[0], wires[3])
-            _entanglerZ(weights[l * 6 + 3], wires[1], wires[2])
+        for i in reversed(range(n_wires)):
+            for j in reversed(range(n_wires)):
+                if j == i:
+                    continue
+                qml.CRX(weights[weights_each_layer*l+2*n_wires-data_size+i*(n_wires-1)+j],wires=[wires[i],wires[j]])
 
-    # repeat feature encoding once more at the end
-        # Either feed in feature
-        qml.RX(x[0], wires=wires[0])
-        qml.RX(x[1], wires=wires[2])
-        if types == 1:
-            qml.RX(weights[l * 4 + 2], wires=wires[1])
-            qml.RX(weights[l * 4 + 3], wires=wires[3])
-        elif types == 2:
-            qml.RX(weights[l * 2 + 1], wires=wires[1])
-            qml.RX(weights[l * 2 + 1], wires=wires[3])
+        for i in range(data_size):
+            qml.RX(x[i], wires=wires[i])
 
-        else:
-            qml.RX(weights[l * 6 + 4], wires=wires[1])
-            qml.RX(weights[l * 6 + 5], wires=wires[3])
+        for i in range(n_wires-data_size):
+            qml.RX(weights[weights_each_layer*l+n_wires*(n_wires+1)-data_size+i], wires=wires[i+data_size])
+
+        for i in range(n_wires):
+            qml.RZ(weights[weights_each_layer*l+n_wires*(n_wires+2)-2*data_size+i], wires=wires[i])
 
 
 def pars_HVA(n_layers=1,types=1):
@@ -495,7 +487,7 @@ def pars_HVA(n_layers=1,types=1):
     else:
         return 0.001*np.ones(n_layers * 6)
 
-def Pars_HVA_TFIM_1D_data(n_layers=1,types=1):
+def pars_HVA_TFIM_1D_data(n_layers=1,types=1):
     """
     Initial weight generator for 1-d qaoa feature map
     :param n_wires: number of wires
@@ -508,3 +500,12 @@ def Pars_HVA_TFIM_1D_data(n_layers=1,types=1):
         return 0.001*np.ones(n_layers * 2)
     else:
         return 0.001*np.ones(n_layers * 7)
+
+def pars_VQC(x_dim, n_wires, n_layers=1, types = 1):
+
+    weights_each_layer  = (n_wires*(n_wires+3) - 2*x_dim)
+
+    return np.random.uniform(0,2*np.pi)*np.ones(n_layers * weights_each_layer)
+
+
+
