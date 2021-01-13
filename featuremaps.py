@@ -461,7 +461,11 @@ def VQC(weights, x, wires, n_layers=1, types = 1):
             for j in reversed(range(n_wires)):
                 if j == i:
                     continue
-                qml.CRX(weights[weights_each_layer*l+2*n_wires-data_size+i*(n_wires-1)+j],wires=[wires[i],wires[j]])
+                if types == 1: #type 6 in Aspuru's paper
+                    qml.CRX(weights[weights_each_layer*l+2*n_wires-data_size+i*(n_wires-1)+j],wires=[wires[i],wires[j]])
+                if types == 2: #type 5 in Aspuru's paper
+                    qml.CRZ(weights[weights_each_layer*l+2*n_wires-data_size+i*(n_wires-1)+j],wires=[wires[i],wires[j]])
+
 
         for i in range(data_size):
             qml.RX(x[i], wires=wires[i])
