@@ -44,12 +44,12 @@ y = np.array([np.nan,np.nan,np.nan,np.nan,0.719350,np.nan,0.568995])
 plt.scatter(x, y,marker='o',facecolors='none',edgecolors='blue',label='L=2,w=4,d=2')
 # for l=3
 # for l=4,w=2,d=2
-y = np.array([np.nan,np.nan,np.nan,np.nan,np.nan,0.469099,0.398838])
+y = np.array([0.482175,np.nan,np.nan,np.nan,np.nan,0.469099,0.398838])
 plt.scatter(x, y,marker='s',facecolors='none',edgecolors='green',label='L=4,w=2,d=2')
 
 plt.grid(b=True, which='both', color='#666666', linestyle='--')
 
 plt.legend()
 plt.xlabel("Circuit ID", fontsize=13)
-plt.ylabel("Converged Cost Function", fontsize=13)
+plt.ylabel("Cost Function After 300 Steps", fontsize=13)
 plt.show()
