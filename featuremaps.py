@@ -123,12 +123,12 @@ def pars_qaoa(n_wires, n_layers=1):
     :return: array of weights
     """
     if n_wires == 1:
-        return 0.001*np.ones(n_layers)
+        return np.random.uniform(0,2*np.pi)*np.ones(n_layers)
     elif n_wires == 2:
-        return 0.001 * np.ones(n_layers * 3)
+        return np.random.uniform(0,2*np.pi) * np.ones(n_layers * 3)
     elif n_wires == 4:
-        return 0.001 * np.ones(n_wires * n_layers * 2)
-    return 0.001*np.ones(n_layers * n_wires * 2)
+        return np.random.uniform(0,2*np.pi) * np.ones(n_wires * n_layers * 2)
+    return np.random.uniform(0,2*np.pi)*np.ones(n_layers * n_wires * 2)
 
 
 
@@ -485,11 +485,11 @@ def pars_HVA(n_layers=1,types=1):
     :return: array of weights
     """
     if types == 1:
-        return 0.001*np.ones(n_layers * 4)
+        return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 4)
     elif types == 2:
-        return 0.001*np.ones(n_layers * 2)
+        return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 2)
     else:
-        return 0.001*np.ones(n_layers * 6)
+        return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 6)
 
 def pars_HVA_TFIM_1D_data(n_layers=1,types=1):
     """
@@ -499,11 +499,11 @@ def pars_HVA_TFIM_1D_data(n_layers=1,types=1):
     :return: array of weights
     """
     if types == 1:
-        return 0.001*np.ones(n_layers * 6)
+        return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 6)
     elif types == 2:
-        return 0.001*np.ones(n_layers * 2)
+        return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 2)
     else:
-        return 0.001*np.ones(n_layers * 7)
+        return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 7)
 
 def pars_VQC(x_dim, n_wires, n_layers=1, types = 1):
 
