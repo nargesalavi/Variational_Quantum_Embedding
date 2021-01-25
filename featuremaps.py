@@ -157,7 +157,7 @@ def shallow_circuit(weights, x, wires, n_layers=1,circuit_ID=1):
     if n_wires == 1:
         n_weights_needed = n_layers
     elif n_wires == 2:
-        n_weights_needed = 3 * n_layers
+        n_weights_needed = 4 * n_layers
     else:
         n_weights_needed = 2 * n_wires * n_layers
 
@@ -175,61 +175,69 @@ def shallow_circuit(weights, x, wires, n_layers=1,circuit_ID=1):
         for i in range(n_wires):
             # Either feed in feature
             if i < len(x):
-                if circuit_ID == 18 or circuit_ID == 19:
+                if circuit_ID == 3 or circuit_ID == 4:
                     qml.RX(x[i], wires=wires[i])
 
                 elif circuit_ID == 11 or circuit_ID == 12:
                     qml.RY(x[i], wires=wires[i])
                 else:
-                    raise ValueError("Wrong circuit_ID: It should be between 1-19, got {}.".format(circuit_ID))
+                    raise ValueError("Wrong circuit_ID: It should be 3 or 4, got {}.".format(circuit_ID))
             else:
                 qml.Hadamard(wires=wires[i])
 
         # 1-d nearest neighbour coupling
         if n_wires == 1:
-            if circuit_ID == 18 or circuit_ID == 19:
+            if circuit_ID == 3 or circuit_ID == 4:
                 qml.RZ(weights[l], wires=wires[0])
             
         elif n_wires == 2:
             # local fields
             for i in range(n_wires):
-                if circuit_ID == 18 or circuit_ID == 19:
-                    qml.RZ(weights[l * 3 + i], wires=wires[i])
+                if circuit_ID == 3 or circuit_ID == 4:
+                    qml.RZ(weights[l * 4 + i], wires=wires[i])
                 else:
-                    raise ValueError("Wrong circuit_ID: It should be between 1-19, got {}.".format(circuit_ID))
-            if circuit_ID == 18:
-                qml.CRZ(weights[l * 3 + 2], wires=[wires[1], wires[0]])
-            elif circuit_ID == 19:
-                qml.CRX(weights[l * 3 + 2], wires=[wires[1], wires[0]])
+                    raise ValueError("Wrong circuit_ID: It should be between 1-4, got {}.".format(circuit_ID))
+            if circuit_ID == 3:
+                qml.CRZ(weights[l * 4 + 2], wires=[wires[1], wires[0]])
+                qml.CRZ(weights[l * 4 + 3], wires=[wires[0], wires[1]])
+            elif circuit_ID == 4:
+                qml.CRX(weights[l * 4 + 2], wires=[wires[1], wires[0]])
+                qml.CRX(weights[l * 4 + 3], wires=[wires[0], wires[1]])
         else:
             # local fields
             for i in range(n_wires):
-                if circuit_ID == 18 or circuit_ID == 19:
+                if circuit_ID == 3 or circuit_ID == 4:
                     qml.RZ(weights[l * 2 * n_wires + i], wires=wires[i])
 
             for i in range(n_wires):
                 if i == 0:
-                    if  circuit_ID == 18:
+                    if  circuit_ID == 3:
                         qml.CRZ(weights[l * 2 * n_wires + n_wires + i], wires=[wires[n_wires-1], wires[0]])
-                    elif  circuit_ID == 19:
+                    elif  circuit_ID == 4:
                         qml.CRX(weights[l * 2 * n_wires + n_wires + i], wires=[wires[n_wires-1], wires[0]])
                 elif i < n_wires-1:
-                    if  circuit_ID == 18:
+                    if  circuit_ID == 3:
                         qml.CRZ(weights[l * 2 * n_wires + n_wires + i], wires=[wires[i], wires[i + 1]])
-                    elif  circuit_ID == 19:
+                    elif  circuit_ID == 4:
                         qml.CRX(weights[l * 2 * n_wires + n_wires + i], wires=[wires[i], wires[i + 1]])
 
     # repeat feature encoding once more at the end
     for i in range(n_wires):
         # Either feed in feature
         if i < len(x):
-            if circuit_ID == 18 or circuit_ID == 19:
+            if circuit_ID == 3 or circuit_ID == 4:
                 qml.RX(x[i], wires=wires[i])
         # or a Hadamard
         else:
             qml.Hadamard(wires=wires[i])
 
-
+def pars_shallow(n_wires, n_layers=1):
+	if n_wires == 1:
+		return np.random.uniform(0,2*np.pi)*np.ones(n_layers)
+	elif n_wires == 2:
+		return np.random.uniform(0,2*np.pi) * np.ones(4 * n_layers)
+	else:
+		return np.random.uniform(0,2*np.pi)*np.ones(n_layers * n_wires * 2)
 
 def HVA_XXZ(weights, x, wires, n_layers=1):
     """
