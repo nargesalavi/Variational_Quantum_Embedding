@@ -471,7 +471,7 @@ def VQC(weights, x, wires, n_layers=1, circuit_ID = 7):
                     continue
                 if circuit_ID == 8: #type 6 in Aspuru's paper
                     qml.CRX(weights[weights_each_layer*l+2*n_wires-data_size+i*(n_wires-1)+j],wires=[wires[i],wires[j]])
-                if circuit_ID == 7: #type 5 in Aspuru's paper
+                elif circuit_ID == 7: #type 5 in Aspuru's paper
                     qml.CRZ(weights[weights_each_layer*l+2*n_wires-data_size+i*(n_wires-1)+j],wires=[wires[i],wires[j]])
                 else:
                     raise ValueError("Wrong circuit_ID: It should be between 7 or 8, got {}.".format(circuit_ID))
