@@ -433,7 +433,7 @@ def HVA_TFIM_1D_data(weights, x, wires, n_layers=1, types = 1):
             qml.RX(weights[l * 7 + 5], wires=wires[1])
             qml.RX(weights[l * 7 + 6], wires=wires[3])
 
-def VQC(weights, x, wires, n_layers=1, types = 1):
+def VQC(weights, x, wires, n_layers=1, circuit_ID = 7):
     """ Circuits ID = 5, 6 in arXiv:1905.10876 paper
     :param weights: trainable weights of shape 2*n_layers*n_wires
     :param 1d x: input, len(x) is <= len(wires)
@@ -469,11 +469,12 @@ def VQC(weights, x, wires, n_layers=1, types = 1):
             for j in reversed(range(n_wires)):
                 if j == i:
                     continue
-                if types == 1: #type 6 in Aspuru's paper
+                if circuit_ID == 8: #type 6 in Aspuru's paper
                     qml.CRX(weights[weights_each_layer*l+2*n_wires-data_size+i*(n_wires-1)+j],wires=[wires[i],wires[j]])
-                if types == 2: #type 5 in Aspuru's paper
+                if circuit_ID == 7: #type 5 in Aspuru's paper
                     qml.CRZ(weights[weights_each_layer*l+2*n_wires-data_size+i*(n_wires-1)+j],wires=[wires[i],wires[j]])
-
+                else:
+                    raise ValueError("Wrong circuit_ID: It should be between 7 or 8, got {}.".format(circuit_ID))
 
         for i in range(data_size):
             qml.RX(x[i], wires=wires[i])
