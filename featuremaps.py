@@ -535,7 +535,7 @@ def pars_HVA(n_layers=1,types=1):
     else:
         return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 6)
 
-def pars_HVA_TFIM_1D_data(n_layers=1,circuit_ID=5, n_wires=4):
+def pars_HVA_TFIM_1D_data(n_layers=1,types=5, n_wires=4):
 	"""
 	Initial weight generator for 1-d qaoa feature map
 	:param n_wires: number of wires
@@ -543,17 +543,17 @@ def pars_HVA_TFIM_1D_data(n_layers=1,circuit_ID=5, n_wires=4):
 	:return: array of weights
 	"""
 	if n_wires == 4:
-		if circuit_ID == 5:
+		if types == 5:
 			return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 6)
-		elif circuit_ID == 6:
+		elif types == 6:
 			return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 7)
 		else:
 			return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 2)
 
 	elif n_wires == 2:
-		if circuit_ID == 5:
+		if types == 5:
 			return np.random.uniform(0,2*np.pi)*np.ones(n_layers)
-		elif circuit_ID == 6:
+		elif types == 6:
 			return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 2)
 		else:
 			raise ValueError("This type of parsing is not defined.")
