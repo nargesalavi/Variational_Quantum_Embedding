@@ -367,71 +367,106 @@ def HVA_TFIM_2D_data(weights, x, wires, n_layers=1, types = 1):
             qml.RX(weights[l * 6 + 4], wires=wires[1])
             qml.RX(weights[l * 6 + 5], wires=wires[3])
 
-def HVA_TFIM_1D_data(weights, x, wires, n_layers=1, types = 1):
-    """
-    1-d Ising-coupling HVA_TFIM feature map, according to 2008.02941v2.11075.
+def HVA_TFIM_1D_data(weights, x, wires, n_layers=1, circuit_ID = 1):
+	"""
+	1-d Ising-coupling HVA_TFIM feature map, according to 2008.02941v2.11075.
 
-    :param weights: trainable weights of shape 2*n_layers*n_wires
-    :param 1d x: input, len(x) is <= len(wires)
-    :param wires: list of wires on which the feature map acts
-    :param n_layers: number of repetitions of the first layer
-    """
-    wires = range(0, 4)
-    n_wires = len(wires)
-    if types == 1:
-        n_weights_needed = 6 * n_layers # Data encoded via first and last layer
-    elif types == 2:
-        n_weights_needed = 2 * n_layers #all zz have same params, all rx have same params
-    else:
-        n_weights_needed = 7 * n_layers #encode layer just in last layer
+	:param weights: trainable weights of shape 2*n_layers*n_wires
+	:param 1d x: input, len(x) is <= len(wires)
+	:param wires: list of wires on which the feature map acts
+	:param n_layers: number of repetitions of the first layer
+	"""
+	n_wires = len(wires)
+	if circuit_ID == 5:
+		if n_wires == 4:
+		    n_weights_needed = 6 * n_layers # Data encoded via first and last layer
+		elif n_wires == 2:
+		    n_weights_needed = n_layers
+		else:
+		    raise ValueError("circuit_ID 5 and number of wires {} is not defined."\
+		           .format(n_wires))
+	elif circuit_ID == 6:
+	    if n_wires == 4:
+	        n_weights_needed = 7 * n_layers #encode layer just in last layer
+	    elif n_wires == 2:
+	        n_weights_needed = 2*n_layers
+	    else:
+	        raise ValueError("circuit_ID 6 and number of wires {} is not defined."\
+	                    .format(n_wires))
+	elif circuit_ID == 9:
+	    if n_wires == 4:
+	        n_weights_needed = 2 * n_layers #all zz have same params, all rx have same params
+	    else:
+	        raise ValueError("circuit_ID 9 and number of wires {} is not defined."\
+	                    .format(n_wires))
+	else:
+	    raise ValueError("circuit_ID {} is not defined."\
+	        .format(circuit_ID))
 
-    if len(x) > n_wires:
-        raise ValueError("Feat map can encode at most {} features (which is the "
-                         "number of wires), got {}.".format(n_wires, len(x)))
+	if len(x) > n_wires:
+	    raise ValueError("Feat map can encode at most {} features (which is the "
+	                                   "number of wires), got {}.".format(n_wires, len(x)))
 
-    if len(weights) != n_weights_needed:
-        raise ValueError("Feat map needs {} weights, got {}."
-                         .format(n_weights_needed, len(weights)))
+	if len(weights) != n_weights_needed:
+	    raise ValueError("Feat map needs {} weights, got {}."
+	                                   .format(n_weights_needed, len(weights)))
 
-    for l in range(n_layers):
+	for l in range(n_layers):
 
-        # inputs
-        for i in range(n_wires):
-            qml.Hadamard(wires=wires[i])
+              # inputs
+		for i in range(n_wires):
+		    qml.Hadamard(wires=wires[i])
+		if n_wires == 4:
+			if circuit_ID == 5:
+			    _entanglerZ(x[0], wires[0], wires[1])
+			    _entanglerZ(weights[l * 6 ], wires[2], wires[3])
+			    _entanglerZ(weights[l * 6 + 1], wires[0], wires[3])
+			    _entanglerZ(weights[l * 6 + 2], wires[1], wires[2])
+			elif circuit_ID == 9:
+			    _entanglerZ(weights[l * 2], wires[0], wires[1])
+			    _entanglerZ(weights[l * 2], wires[2], wires[3])
+			    _entanglerZ(weights[l * 2], wires[0], wires[3])
+			    _entanglerZ(weights[l * 2], wires[1], wires[2])
+			elif circuit_ID == 6:
+			    _entanglerZ(weights[l * 7 ], wires[0], wires[1])
+			    _entanglerZ(weights[l * 7 + 1], wires[2], wires[3])
+			    _entanglerZ(weights[l * 7 + 2], wires[0], wires[3])
+			    _entanglerZ(weights[l * 7 + 3], wires[1], wires[2])
+		elif n_wires == 2:
+			if circuit_ID == 5:
+			    _entanglerZ(x[0], wires[0], wires[1])
+			elif circuit_ID == 6:
+			    _entanglerZ(weights[l * 2 ], wires[0], wires[1])
+		else:
+			raise ValueError("This type of circuit is not defined.")
 
-        if types == 1:
-            _entanglerZ(x[0], wires[0], wires[1])
-            _entanglerZ(weights[l * 6 ], wires[2], wires[3])
-            _entanglerZ(weights[l * 6 + 1], wires[0], wires[3])
-            _entanglerZ(weights[l * 6 + 2], wires[1], wires[2])
-        elif types == 2:
-            _entanglerZ(weights[l * 2], wires[0], wires[1])
-            _entanglerZ(weights[l * 2], wires[2], wires[3])
-            _entanglerZ(weights[l * 2], wires[0], wires[3])
-            _entanglerZ(weights[l * 2], wires[1], wires[2])
-        else:
-            _entanglerZ(weights[l * 7 ], wires[0], wires[1])
-            _entanglerZ(weights[l * 7 + 1], wires[2], wires[3])
-            _entanglerZ(weights[l * 7 + 2], wires[0], wires[3])
-            _entanglerZ(weights[l * 7 + 3], wires[1], wires[2])
+		# repeat feature encoding once more at the end
+		# Either feed in feature
+		qml.RX(x[0], wires=wires[0])
+		if n_wires == 4:
+			if circuit_ID == 4:
 
-    # repeat feature encoding once more at the end
-        # Either feed in feature
-        qml.RX(x[0], wires=wires[0])
-        if types == 1:
+			    qml.RX(weights[l * 6 + 3], wires=wires[1])
+			    qml.RX(weights[l * 6 + 4], wires=wires[2])
+			    qml.RX(weights[l * 6 + 5], wires=wires[3])
+			elif circuit_ID == 9:
+			    qml.RX(weights[l * 2 + 1], wires=wires[1])
+			    qml.RX(weights[l * 2 + 1], wires=wires[2])
+			    qml.RX(weights[l * 2 + 1], wires=wires[3])
 
-            qml.RX(weights[l * 6 + 3], wires=wires[1])
-            qml.RX(weights[l * 6 + 4], wires=wires[2])
-            qml.RX(weights[l * 6 + 5], wires=wires[3])
-        elif types == 2:
-            qml.RX(weights[l * 2 + 1], wires=wires[1])
-            qml.RX(weights[l * 2 + 1], wires=wires[2])
-            qml.RX(weights[l * 2 + 1], wires=wires[3])
-
-        else:
-            qml.RX(weights[l * 7 + 4], wires=wires[1])
-            qml.RX(weights[l * 7 + 5], wires=wires[1])
-            qml.RX(weights[l * 7 + 6], wires=wires[3])
+			elif circuit_ID == 6:
+			    qml.RX(weights[l * 7 + 4], wires=wires[1])
+			    qml.RX(weights[l * 7 + 5], wires=wires[1])
+			    qml.RX(weights[l * 7 + 6], wires=wires[3])
+			else:
+			    return
+		elif n_wires == 2:
+			if circuit_ID == 5:
+			    qml.RX(weights[l], wires=wires[1])
+			elif circuit_ID == 6:
+			    qml.RX(weights[l * 2 + 1], wires=wires[1])
+			else:
+			    raise ValueError("This type of circuit is not defined.")
 
 def VQC(weights, x, wires, n_layers=1, circuit_ID = 7):
     """ Circuits ID = 5, 6 in arXiv:1905.10876 paper
@@ -500,25 +535,34 @@ def pars_HVA(n_layers=1,types=1):
     else:
         return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 6)
 
-def pars_HVA_TFIM_1D_data(n_layers=1,types=1):
-    """
-    Initial weight generator for 1-d qaoa feature map
-    :param n_wires: number of wires
-    :param n_layers: number of layers
-    :return: array of weights
-    """
-    if types == 1:
-        return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 6)
-    elif types == 2:
-        return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 2)
-    else:
-        return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 7)
+def pars_HVA_TFIM_1D_data(n_layers=1,circuit_ID=5, n_wires=4):
+	"""
+	Initial weight generator for 1-d qaoa feature map
+	:param n_wires: number of wires
+	:param n_layers: number of layers
+	:return: array of weights
+	"""
+	if n_wires == 4:
+		if circuit_ID == 5:
+			return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 6)
+		elif circuit_ID == 6:
+			return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 7)
+		else:
+			return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 2)
+
+	elif n_wires == 2:
+		if circuit_ID == 5:
+			return np.random.uniform(0,2*np.pi)*np.ones(n_layers)
+		elif circuit_ID == 6:
+			return np.random.uniform(0,2*np.pi)*np.ones(n_layers * 2)
+		else:
+			raise ValueError("This type of parsing is not defined.")
+
+	else:
+		raise ValueError("This type of parsing is not defined.")
 
 def pars_VQC(x_dim, n_wires, n_layers=1, types = 1):
 
     weights_each_layer  = (n_wires*(n_wires+3) - 2*x_dim)
 
     return np.random.uniform(0,2*np.pi)*np.ones(n_layers * weights_each_layer)
-
-
-
